@@ -1,6 +1,6 @@
 {
   "name": "@marcuth/dds-to-png",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Convert DDS files to PNG format using Node.js. No external dependencies required.",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
