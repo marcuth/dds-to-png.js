@@ -2,19 +2,42 @@ import { parseHeaders, decodeDds } from "dds-parser"
 import { PNG } from "pngjs"
 import fs from "node:fs"
 
-export function unpremultiplyAlpha(data: Uint8Array | Uint8ClampedArray): void {
-    const len = data.length
+function smoothDXT5Artifacts(data: Uint8Array, width: number, height: number): void {
+    const temp = new Uint8Array(data)
+    
+    const getPixel = (x: number, y: number, channel: number): number => {
+        if (x < 0 || x >= width || y < 0 || y >= height) return 0
+        return temp[(y * width + x) * 4 + channel]
+    }
+    
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const idx = (y * width + x) * 4
+            const alpha = temp[idx + 3]
+            
+            if (alpha > 0 && alpha < 255) {
+                const kernel = [
+                    [1, 2, 1],
+                    [2, 4, 2],
+                    [1, 2, 1]
+                ]
 
-    for (let i = 0; i < len; i += 4) {
-        const a = data[i + 3]
-
-        if (a === 0) continue
-
-        const alpha = a / 255
-
-        data[i] = Math.min(255, Math.round(data[i] / alpha))
-        data[i + 1] = Math.min(255, Math.round(data[i + 1] / alpha))
-        data[i + 2] = Math.min(255, Math.round(data[i + 2] / alpha))
+                const kernelSum = 16
+                
+                for (let c = 0; c < 4; c++) {
+                    let sum = 0
+                    
+                    for (let ky = -1; ky <= 1; ky++) {
+                        for (let kx = -1; kx <= 1; kx++) {
+                            const weight = kernel[ky + 1][kx + 1]
+                            sum += getPixel(x + kx, y + ky, c) * weight
+                        }
+                    }
+                    
+                    data[idx + c] = Math.round(sum / kernelSum)
+                }
+            }
+        }
     }
 }
 
@@ -50,7 +73,7 @@ export async function convertDdsToPng(inputPath: string, outputPath: string): Pr
         shape.height
     )
 
-    unpremultiplyAlpha(rgba)
+    smoothDXT5Artifacts(rgba, shape.width, shape.height)
 
     const png = new PNG({ width: shape.width, height: shape.height })
 
