@@ -98,7 +98,8 @@ Tests are written with [Vitest](https://vitest.dev) and enforce 100% coverage (s
 
 ```bash
 npm test
-npm run coverage
+npm run test:coverage
+npm run test:watch
 ```
 
 ---
