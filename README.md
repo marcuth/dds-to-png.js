@@ -7,10 +7,11 @@ Convert DDS (DirectDraw Surface) texture files to PNG images in Node.js — **wi
 ## 🔍 Overview
 
 `@marcuth/dds-to-png` is a lightweight Node.js library that converts DDS texture files into PNG images (RGBA).
-It uses pure JavaScript and works directly with DDS headers + pixel data using `dds-parser`.
+It uses a built-in pure JavaScript decoder that reads DDS headers and pixel data directly, with no runtime dependency besides `pngjs`.
 
 ✨ No native dependencies
-✨ Works with common DDS formats (DXT1, DXT3, DXT5)
+✨ Works with common DDS formats (DXT1–DXT5, uncompressed RGB/RGBA, DX10 BC1/BC2/BC3)
+✨ Accurate alpha handling: exact 8-bit colour expansion, DXT1 punch-through transparency, DXT2/DXT4 premultiplied alpha, no blur applied to edges
 ✨ Promise-based API
 ✨ Simple to integrate in scripts and build pipelines
 
@@ -62,7 +63,7 @@ A `Promise<void>` that resolves when the PNG file has been successfully written.
 **Throws:**
 
 * If the input file does not exist
-* If no image data is found inside the DDS file
+* If the file is not a valid DDS, uses an unsupported format, or has truncated pixel data
 
 ---
 
@@ -70,10 +71,14 @@ A `Promise<void>` that resolves when the PNG file has been successfully written.
 
 This library currently supports the most common DDS compression formats:
 
-✔️ DXT1
-✔️ DXT3
-✔️ DXT5
-✔️ Uncompressed RGBA
+✔️ DXT1 (BC1), including 1-bit transparency
+✔️ DXT2 / DXT3 (BC2)
+✔️ DXT4 / DXT5 (BC3)
+✔️ Uncompressed 24/32-bit RGB(A), with arbitrary channel masks
+✔️ DX10 header with BC1, BC2, BC3, R8G8B8A8 and B8G8R8A8
+✔️ Any width/height, including sizes that are not multiples of 4
+
+DXT2 and DXT4 use premultiplied alpha; the output PNG always contains straight (non-premultiplied) alpha.
 
 Other formats (e.g., BC7, ASTC, cubemaps, texture arrays) are **not supported** at this time.
 
@@ -87,9 +92,14 @@ Other formats (e.g., BC7, ASTC, cubemaps, texture arrays) are **not supported** 
 
 ---
 
-## 🚫 No Testing Included
+## 🧪 Testing
 
-This library currently does **not ship with built-in tests**. Users may add their own testing setup if desired.
+Tests are written with [Vitest](https://vitest.dev) and enforce 100% coverage (statements, branches, functions and lines).
+
+```bash
+npm test
+npm run coverage
+```
 
 ---
 
