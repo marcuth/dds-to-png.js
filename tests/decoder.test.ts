@@ -15,11 +15,15 @@ describe("decodeDdsFile - validation", () => {
     })
 
     it("rejects unknown FourCC codes", () => {
-        expect(() => decodeDdsFile(buildDds({ width: 4, height: 4, fourCC: "ABCD" }))).toThrow("Unsupported FourCC code: ABCD")
+        expect(() => decodeDdsFile(buildDds({ width: 4, height: 4, fourCC: "ABCD" }))).toThrow(
+            "Unsupported FourCC code: ABCD"
+        )
     })
 
     it("rejects pixel formats that are neither FourCC nor RGB", () => {
-        expect(() => decodeDdsFile(buildDds({ width: 4, height: 4, pfFlags: 0 }))).toThrow("Unsupported DDS pixel format")
+        expect(() => decodeDdsFile(buildDds({ width: 4, height: 4, pfFlags: 0 }))).toThrow(
+            "Unsupported DDS pixel format"
+        )
     })
 
     it("rejects truncated block-compressed data", () => {
@@ -27,16 +31,23 @@ describe("decodeDdsFile - validation", () => {
     })
 
     it("rejects truncated uncompressed data", () => {
-        const dds = buildDds({ width: 2, height: 2, pfFlags: 0x41, bitCount: 32, masks: [0xff, 0xff00, 0xff0000, 0xff000000] }, [0])
+        const dds = buildDds(
+            { width: 2, height: 2, pfFlags: 0x41, bitCount: 32, masks: [0xff, 0xff00, 0xff0000, 0xff000000] },
+            [0]
+        )
         expect(() => decodeDdsFile(dds)).toThrow("truncated")
     })
 
     it("rejects unsupported bit counts", () => {
-        expect(() => decodeDdsFile(buildDds({ width: 1, height: 1, pfFlags: 0x40, bitCount: 16 }, [0, 0]))).toThrow("Unsupported bit count: 16")
+        expect(() => decodeDdsFile(buildDds({ width: 1, height: 1, pfFlags: 0x40, bitCount: 16 }, [0, 0]))).toThrow(
+            "Unsupported bit count: 16"
+        )
     })
 
     it("rejects unsupported DXGI formats", () => {
-        expect(() => decodeDdsFile(buildDds({ width: 4, height: 4, fourCC: "DX10", dxgi: 98 }))).toThrow("Unsupported DXGI format: 98")
+        expect(() => decodeDdsFile(buildDds({ width: 4, height: 4, fourCC: "DX10", dxgi: 98 }))).toThrow(
+            "Unsupported DXGI format: 98"
+        )
     })
 })
 
@@ -96,7 +107,10 @@ describe("decodeDdsFile - BC2 (DXT3)", () => {
 describe("decodeDdsFile - BC3 (DXT5)", () => {
     it("decodes 8-alpha interpolation (a0 > a1) across both index halves", () => {
         const indices = [0, 1, 2, 3, 4, 5, 6, 7, 7, 6, 5, 4, 3, 2, 1, 0]
-        const dds = buildDds({ width: 4, height: 4, fourCC: "DXT5" }, [...alphaBlock(255, 0, indices), ...colorBlock(0xffff, 0, 0)])
+        const dds = buildDds({ width: 4, height: 4, fourCC: "DXT5" }, [
+            ...alphaBlock(255, 0, indices),
+            ...colorBlock(0xffff, 0, 0),
+        ])
         const { data } = decodeDdsFile(dds)
         const alphas = Array.from({ length: 16 }, (_, i) => px(data, i)[3])
 
@@ -105,7 +119,10 @@ describe("decodeDdsFile - BC3 (DXT5)", () => {
 
     it("decodes 6-alpha interpolation with explicit 0 and 255 (a0 <= a1)", () => {
         const indices = [0, 1, 2, 3, 4, 5, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0]
-        const dds = buildDds({ width: 4, height: 4, fourCC: "DXT5" }, [...alphaBlock(0, 100, indices), ...colorBlock(0xffff, 0, 0)])
+        const dds = buildDds({ width: 4, height: 4, fourCC: "DXT5" }, [
+            ...alphaBlock(0, 100, indices),
+            ...colorBlock(0xffff, 0, 0),
+        ])
         const { data } = decodeDdsFile(dds)
         const alphas = Array.from({ length: 8 }, (_, i) => px(data, i)[3])
 
@@ -116,7 +133,10 @@ describe("decodeDdsFile - BC3 (DXT5)", () => {
 describe("decodeDdsFile - premultiplied (DXT2/DXT4)", () => {
     it("un-premultiplies DXT4 colours, keeping alpha 0 and 255 untouched", () => {
         const indices = [0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        const dds = buildDds({ width: 4, height: 4, fourCC: "DXT4" }, [...alphaBlock(255, 0, indices), ...colorBlock(0x7bef, 0x7bef, 0)])
+        const dds = buildDds({ width: 4, height: 4, fourCC: "DXT4" }, [
+            ...alphaBlock(255, 0, indices),
+            ...colorBlock(0x7bef, 0x7bef, 0),
+        ])
         const { data } = decodeDdsFile(dds)
 
         expect(px(data, 0)).toEqual([123, 125, 123, 255])
@@ -136,13 +156,19 @@ describe("decodeDdsFile - uncompressed", () => {
     const RGBA: [number, number, number, number] = [0xff, 0xff00, 0xff0000, 0xff000000]
 
     it("decodes 32-bit RGBA with an alpha mask", () => {
-        const dds = buildDds({ width: 2, height: 1, pfFlags: 0x41, bitCount: 32, masks: RGBA }, [10, 20, 30, 40, 50, 60, 70, 80])
+        const dds = buildDds(
+            { width: 2, height: 1, pfFlags: 0x41, bitCount: 32, masks: RGBA },
+            [10, 20, 30, 40, 50, 60, 70, 80]
+        )
 
         expect(Array.from(decodeDdsFile(dds).data)).toEqual([10, 20, 30, 40, 50, 60, 70, 80])
     })
 
     it("decodes 24-bit BGR without alpha", () => {
-        const dds = buildDds({ width: 1, height: 1, pfFlags: 0x40, bitCount: 24, masks: [0xff0000, 0xff00, 0xff, 0] }, [1, 2, 3])
+        const dds = buildDds(
+            { width: 1, height: 1, pfFlags: 0x40, bitCount: 24, masks: [0xff0000, 0xff00, 0xff, 0] },
+            [1, 2, 3]
+        )
 
         expect(Array.from(decodeDdsFile(dds).data)).toEqual([3, 2, 1, 255])
     })
@@ -154,7 +180,10 @@ describe("decodeDdsFile - uncompressed", () => {
     })
 
     it("rescales narrow channels and handles 32-bit wide masks", () => {
-        const dds = buildDds({ width: 1, height: 1, pfFlags: 0x40, bitCount: 32, masks: [0x7, 0xffffffff, 0, 0] }, [0x07, 0, 0, 0])
+        const dds = buildDds(
+            { width: 1, height: 1, pfFlags: 0x40, bitCount: 32, masks: [0x7, 0xffffffff, 0, 0] },
+            [0x07, 0, 0, 0]
+        )
 
         expect(px(decodeDdsFile(dds).data, 0)).toEqual([255, 0, 0, 255])
     })

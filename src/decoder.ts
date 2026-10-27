@@ -25,9 +25,12 @@ const FOURCC_FORMATS = new Map<number, DdsFormat>([
 const FOURCC_DX10 = fourCC("DX10")
 
 const DXGI_FORMATS = new Map<number, DdsFormat>([
-    [71, "dxt1"], [72, "dxt1"],
-    [74, "dxt3"], [75, "dxt3"],
-    [77, "dxt5"], [78, "dxt5"],
+    [71, "dxt1"],
+    [72, "dxt1"],
+    [74, "dxt3"],
+    [75, "dxt3"],
+    [77, "dxt5"],
+    [78, "dxt5"],
 ])
 
 const DXGI_RGBA8 = new Set([28, 29])
@@ -37,21 +40,31 @@ const expand5 = (v: number) => (v << 3) | (v >> 2)
 const expand6 = (v: number) => (v << 2) | (v >> 4)
 
 function buildPalette(palette: Uint8Array, c0: number, c1: number, allowPunchThrough: boolean): void {
-    const r0 = expand5((c0 >> 11) & 31), g0 = expand6((c0 >> 5) & 63), b0 = expand5(c0 & 31)
-    const r1 = expand5((c1 >> 11) & 31), g1 = expand6((c1 >> 5) & 63), b1 = expand5(c1 & 31)
+    const r0 = expand5((c0 >> 11) & 31),
+        g0 = expand6((c0 >> 5) & 63),
+        b0 = expand5(c0 & 31)
+    const r1 = expand5((c1 >> 11) & 31),
+        g1 = expand6((c1 >> 5) & 63),
+        b1 = expand5(c1 & 31)
 
     palette.set([r0, g0, b0, 255, r1, g1, b1, 255])
 
     if (c0 > c1 || !allowPunchThrough) {
-        palette.set([
-            Math.round((2 * r0 + r1) / 3), Math.round((2 * g0 + g1) / 3), Math.round((2 * b0 + b1) / 3), 255,
-            Math.round((r0 + 2 * r1) / 3), Math.round((g0 + 2 * g1) / 3), Math.round((b0 + 2 * b1) / 3), 255,
-        ], 8)
+        palette.set(
+            [
+                Math.round((2 * r0 + r1) / 3),
+                Math.round((2 * g0 + g1) / 3),
+                Math.round((2 * b0 + b1) / 3),
+                255,
+                Math.round((r0 + 2 * r1) / 3),
+                Math.round((g0 + 2 * g1) / 3),
+                Math.round((b0 + 2 * b1) / 3),
+                255,
+            ],
+            8
+        )
     } else {
-        palette.set([
-            (r0 + r1) >> 1, (g0 + g1) >> 1, (b0 + b1) >> 1, 255,
-            0, 0, 0, 0,
-        ], 8)
+        palette.set([(r0 + r1) >> 1, (g0 + g1) >> 1, (b0 + b1) >> 1, 255, 0, 0, 0, 0], 8)
     }
 }
 
@@ -101,7 +114,12 @@ function decodeBlockCompressed(src: Uint8Array, width: number, height: number, f
                 isBc1
             )
 
-            const colorBits = (src[colorOffset + 4] | (src[colorOffset + 5] << 8) | (src[colorOffset + 6] << 16) | (src[colorOffset + 7] << 24)) >>> 0
+            const colorBits =
+                (src[colorOffset + 4] |
+                    (src[colorOffset + 5] << 8) |
+                    (src[colorOffset + 6] << 16) |
+                    (src[colorOffset + 7] << 24)) >>>
+                0
 
             let alphaLow = 0
             let alphaHigh = 0
@@ -166,14 +184,14 @@ function decodeUncompressed(
     width: number,
     height: number,
     bitCount: number,
-    masks: { r: number, g: number, b: number, a: number }
+    masks: { r: number; g: number; b: number; a: number }
 ): Uint8Array {
     const bytes = bitCount / 8
     if (src.length < width * height * bytes) {
         throw new Error("DDS pixel data is truncated")
     }
 
-    const extract = (mask: number): { shift: number, max: number } => {
+    const extract = (mask: number): { shift: number; max: number } => {
         if (!mask) return { shift: 0, max: 0 }
         let shift = 0
         while (!((mask >>> shift) & 1)) shift++
@@ -195,7 +213,9 @@ function decodeUncompressed(
             const { shift, max } = channels[c]
             out[i * 4 + c] = maskList[c]
                 ? Math.round((((value & maskList[c]) >>> shift) * 255) / max)
-                : c === 3 ? 255 : 0
+                : c === 3
+                  ? 255
+                  : 0
         }
     }
 
@@ -237,7 +257,10 @@ export function decodeDdsFile(buffer: Uint8Array): DdsImage {
             if (!format) throw new Error(`Unsupported DXGI format: ${dxgi}`)
         } else {
             format = FOURCC_FORMATS.get(pfFourCC)
-            if (!format) throw new Error(`Unsupported FourCC code: ${String.fromCharCode(pfFourCC & 255, (pfFourCC >> 8) & 255, (pfFourCC >> 16) & 255, (pfFourCC >>> 24) & 255)}`)
+            if (!format)
+                throw new Error(
+                    `Unsupported FourCC code: ${String.fromCharCode(pfFourCC & 255, (pfFourCC >> 8) & 255, (pfFourCC >> 16) & 255, (pfFourCC >>> 24) & 255)}`
+                )
         }
     } else if (pfFlags & DDPF_RGB) {
         format = "rgba"
@@ -251,18 +274,19 @@ export function decodeDdsFile(buffer: Uint8Array): DdsImage {
         return { width, height, data: decodeBlockCompressed(pixels, width, height, format) }
     }
 
-    const masks = (pfFlags & DDPF_FOURCC)
-        ? bgra
-            ? { r: 0xff0000, g: 0xff00, b: 0xff, a: 0xff000000 }
-            : { r: 0xff, g: 0xff00, b: 0xff0000, a: 0xff000000 }
-        : {
-            r: view.getUint32(92, true),
-            g: view.getUint32(96, true),
-            b: view.getUint32(100, true),
-            a: (pfFlags & DDPF_ALPHAPIXELS) ? view.getUint32(104, true) : 0,
-        }
+    const masks =
+        pfFlags & DDPF_FOURCC
+            ? bgra
+                ? { r: 0xff0000, g: 0xff00, b: 0xff, a: 0xff000000 }
+                : { r: 0xff, g: 0xff00, b: 0xff0000, a: 0xff000000 }
+            : {
+                  r: view.getUint32(92, true),
+                  g: view.getUint32(96, true),
+                  b: view.getUint32(100, true),
+                  a: pfFlags & DDPF_ALPHAPIXELS ? view.getUint32(104, true) : 0,
+              }
 
-    const bits = (pfFlags & DDPF_FOURCC) ? 32 : bitCount
+    const bits = pfFlags & DDPF_FOURCC ? 32 : bitCount
 
     if (bits !== 24 && bits !== 32) {
         throw new Error(`Unsupported bit count: ${bits}`)

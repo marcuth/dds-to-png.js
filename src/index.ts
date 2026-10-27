@@ -1,5 +1,5 @@
-import { PNG } from "pngjs"
 import fs from "node:fs"
+import { PNG } from "pngjs"
 
 import { decodeDdsFile } from "./decoder"
 
@@ -15,10 +15,6 @@ export async function convertDdsToPng(inputPath: string, outputPath: string): Pr
     png.data.set(data)
 
     await new Promise<void>((resolve, reject) => {
-        png
-            .pack()
-            .pipe(fs.createWriteStream(outputPath))
-            .on("error", reject)
-            .on("finish", resolve)
+        png.pack().pipe(fs.createWriteStream(outputPath)).on("error", reject).on("finish", resolve)
     })
 }

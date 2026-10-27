@@ -1,0 +1,73 @@
+name: Lint and format
+
+on:
+    push:
+        branches: [master]
+    pull_request:
+
+permissions:
+    contents: write
+
+jobs:
+    format:
+        name: Format and lint
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.head_ref || github.ref_name }}
+                  repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+
+            - run: npm ci
+
+            - name: Format code
+              run: npm run format
+
+            - name: Fix lint issues
+              run: npm run lint:fix
+
+            - name: Commit changes
+              if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+              run: |
+                  if [ -n "$(git status --porcelain)" ]; then
+                    git config user.name "github-actions[bot]"
+                    git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                    git add -A
+                    git commit -m "style: format and lint code"
+                    git push
+                  fi
+
+            - name: Check format
+              run: npm run format:check
+
+            - name: Lint
+              run: npm run lint
+
+    test:
+        name: Test
+        needs: format
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [20, 22]
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.head_ref || github.ref_name }}
+                  repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: npm
+
+            - run: npm ci
+
+            - run: npm run build
+
+            - run: npm run test:coverage

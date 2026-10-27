@@ -62,8 +62,8 @@ A `Promise<void>` that resolves when the PNG file has been successfully written.
 
 **Throws:**
 
-* If the input file does not exist
-* If the file is not a valid DDS, uses an unsupported format, or has truncated pixel data
+- If the input file does not exist
+- If the file is not a valid DDS, uses an unsupported format, or has truncated pixel data
 
 ---
 
@@ -86,9 +86,9 @@ Other formats (e.g., BC7, ASTC, cubemaps, texture arrays) are **not supported** 
 
 ## 💡 Notes
 
-* The conversion always uses the **first image** (mipmap level 0).
-* If your DDS contains multiple textures or layers, custom handling will be required.
-* This is intended for **Node.js environments** and not browser use.
+- The conversion always uses the **first image** (mipmap level 0).
+- If your DDS contains multiple textures or layers, custom handling will be required.
+- This is intended for **Node.js environments** and not browser use.
 
 ---
 

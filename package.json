@@ -1,38 +1,49 @@
 {
-  "name": "@marcuth/dds-to-png",
-  "version": "0.1.0",
-  "description": "Convert DDS files to PNG format using Node.js. No external dependencies required.",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist/*",
-    "!/**/__tests__"
-  ],
-  "scripts": {
-    "build": "tsc",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "test:watch": "vitest"
-  },
-  "keywords": [
-    "dds",
-    "png",
-    "converter",
-    "image"
-  ],
-  "author": "Marcuth",
-  "license": "MIT",
-  "type": "commonjs",
-  "devDependencies": {
-    "@types/node": "^25.0.3",
-    "@types/pngjs": "^6.0.5",
-    "@vitest/coverage-v8": "^5.0.5",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3",
-    "vitest": "^5.0.5"
-  },
-  "dependencies": {
-    "pngjs": "^7.0.0"
-  }
+    "name": "@marcuth/dds-to-png",
+    "version": "0.1.0",
+    "description": "Convert DDS files to PNG format using Node.js. No external dependencies required.",
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "dist/*",
+        "!/**/__tests__"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "test": "vitest run",
+        "test:coverage": "vitest run --coverage",
+        "test:watch": "vitest",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
+    },
+    "keywords": [
+        "dds",
+        "png",
+        "converter",
+        "image"
+    ],
+    "author": "Marcuth",
+    "license": "MIT",
+    "type": "commonjs",
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+        "@types/node": "^25.0.3",
+        "@types/pngjs": "^6.0.5",
+        "@vitest/coverage-v8": "^5.0.5",
+        "eslint": "^10.13.0",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-unused-imports": "^4.4.1",
+        "prettier": "^3.9.10",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.72.1",
+        "vitest": "^5.0.5"
+    },
+    "dependencies": {
+        "pngjs": "^7.0.0"
+    }
 }
